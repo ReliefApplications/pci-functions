@@ -1,35 +1,35 @@
-import pdfMake from 'pdfmake';
-import { Case } from './types';
+import pdfMake from "pdfmake";
+import { Location } from "./types";
 
 const getIntlDate = (date: string | Date) => {
   const d = new Date(date);
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   }).format(d);
 };
 
 const getCorrectedText = (status: string) => {
   switch (status) {
-    case 'Corrected':
-      return 'Yes';
-    case 'Partially corrected':
-      return 'Partially';
-    case 'Not corrected':
-      return 'No';
+    case "Corrected":
+      return "Yes";
+    case "Partially corrected":
+      return "Partially";
+    case "Not corrected":
+      return "No";
     default:
       return status;
   }
 };
 
-export const getCasePDF = (data: Case, flag: string) => {
+export const getLocationPDF = (data: Location, flag: string) => {
   const printer = new pdfMake({
     Roboto: {
-      normal: 'fonts/Roboto-Regular.ttf',
-      bold: 'fonts/Roboto-Medium.ttf',
-      italics: 'fonts/Roboto-Italic.ttf',
-      bolditalics: 'fonts/Roboto-MediumItalic.ttf',
+      normal: "fonts/Roboto-Regular.ttf",
+      bold: "fonts/Roboto-Medium.ttf",
+      italics: "fonts/Roboto-Italic.ttf",
+      bolditalics: "fonts/Roboto-MediumItalic.ttf",
     },
   });
   const docDefinition = {
@@ -47,25 +47,25 @@ export const getCasePDF = (data: Case, flag: string) => {
     },
 
     pageMargins: [40, 40, 40, 40],
-    pageSize: 'A4',
-    pageOrientation: 'portrait',
+    pageSize: "A4",
+    pageOrientation: "portrait",
   };
 
   const content = [
     {
-      text: 'Inspection Report',
-      alignment: 'center',
+      text: "Inspection Report",
+      alignment: "center",
       fontSize: 20,
       bold: true,
     },
     {
-      text: `Case ${data.caseID}`,
-      alignment: 'center',
+      text: `Location ${data.locationID}`,
+      alignment: "center",
       fontSize: 14,
     },
     {
-      text: 'Enterprise Information',
-      alignment: 'left',
+      text: "Enterprise Information",
+      alignment: "left",
       fontSize: 16,
       bold: true,
       margin: [0, 40, 0, 10],
@@ -73,13 +73,13 @@ export const getCasePDF = (data: Case, flag: string) => {
     {
       columns: [
         {
-          text: 'Enterprise Name:',
-          width: 'auto',
+          text: "Enterprise Name:",
+          width: "auto",
           bold: true,
         },
         {
           text: data.enterprise.name,
-          width: 'auto',
+          width: "auto",
         },
       ],
       columnGap: 5,
@@ -88,13 +88,13 @@ export const getCasePDF = (data: Case, flag: string) => {
     {
       columns: [
         {
-          text: 'Enterprise identifier:',
-          width: 'auto',
+          text: "Enterprise identifier:",
+          width: "auto",
           bold: true,
         },
         {
           text: data.enterprise.id,
-          width: 'auto',
+          width: "auto",
         },
       ],
       columnGap: 5,
@@ -103,21 +103,21 @@ export const getCasePDF = (data: Case, flag: string) => {
     {
       columns: [
         {
-          text: 'Address:',
-          width: 'auto',
+          text: "Address:",
+          width: "auto",
           bold: true,
         },
         {
           text: data.enterprise.address,
-          width: 'auto',
+          width: "auto",
         },
       ],
       columnGap: 5,
       margin: [0, 2],
     },
     {
-      text: 'Inspection Information',
-      alignment: 'left',
+      text: "Inspection Information",
+      alignment: "left",
       fontSize: 16,
       bold: true,
       margin: [0, 40, 0, 10],
@@ -125,17 +125,17 @@ export const getCasePDF = (data: Case, flag: string) => {
     {
       columns: [
         {
-          text: 'First Inspection',
-          alignment: 'left',
+          text: "First Inspection",
+          alignment: "left",
           fontSize: 14,
           bold: true,
-          width: '*',
+          width: "*",
         },
         {
           text: getIntlDate(data.inspection.date),
-          alignment: 'right',
+          alignment: "right",
           fontSize: 12,
-          width: '*',
+          width: "*",
         },
       ],
     },
@@ -143,8 +143,8 @@ export const getCasePDF = (data: Case, flag: string) => {
       ? {
           columns: [
             {
-              text: 'Comments:',
-              width: 'auto',
+              text: "Comments:",
+              width: "auto",
               bold: true,
             },
             {
@@ -156,22 +156,22 @@ export const getCasePDF = (data: Case, flag: string) => {
         }
       : undefined,
     {
-      text: 'Inspection actions',
+      text: "Inspection actions",
       margin: [0, 10],
       bold: true,
     },
     {
-      layout: 'lightHorizontalLines',
+      layout: "lightHorizontalLines",
       table: {
         headerRows: 1,
-        widths: ['*', '15%', 'auto'],
+        widths: ["*", "15%", "auto"],
 
         body: [
-          ['Item', 'Action', 'Comment'],
+          ["Item", "Action", "Comment"],
           ...data.inspection.actions.map((x) => [
-            x.point || '',
-            x.action || '',
-            x.comment || '',
+            x.point || "",
+            x.action || "",
+            x.comment || "",
           ]),
         ],
       },
@@ -181,16 +181,16 @@ export const getCasePDF = (data: Case, flag: string) => {
         columns: [
           {
             text: `Follow-up ${i + 1}`,
-            alignment: 'left',
+            alignment: "left",
             fontSize: 14,
             bold: true,
-            width: '*',
+            width: "*",
           },
           {
             text: getIntlDate(followUp.date),
-            alignment: 'right',
+            alignment: "right",
             fontSize: 12,
-            width: '*',
+            width: "*",
           },
         ],
         margin: [0, 20, 0, 0],
@@ -199,8 +199,8 @@ export const getCasePDF = (data: Case, flag: string) => {
         ? {
             columns: [
               {
-                text: 'Comments:',
-                width: 'auto',
+                text: "Comments:",
+                width: "auto",
                 bold: true,
               },
               {
@@ -210,22 +210,22 @@ export const getCasePDF = (data: Case, flag: string) => {
             columnGap: 5,
             margin: [0, 15, 0, 0],
           }
-        : '',
+        : "",
       {
         columns: [
           {
             text: `Inspection actions${
-              followUp.actions.length === 0 ? ':' : ''
+              followUp.actions.length === 0 ? ":" : ""
             }`,
             bold: true,
-            width: 'auto',
+            width: "auto",
           },
           followUp.actions.length === 0
             ? {
-                text: 'No issue noted',
-                width: 'auto',
+                text: "No issue noted",
+                width: "auto",
               }
-            : '',
+            : "",
         ],
         margin: [0, 10],
         columnGap: 5,
@@ -233,18 +233,18 @@ export const getCasePDF = (data: Case, flag: string) => {
 
       followUp.actions.length
         ? {
-            layout: 'lightHorizontalLines',
+            layout: "lightHorizontalLines",
             table: {
               headerRows: 1,
-              widths: ['*', '15%', '15%', 'auto'],
+              widths: ["*", "15%", "15%", "auto"],
 
               body: [
-                ['Item', 'Corrected', 'Action', 'New comment'],
+                ["Item", "Corrected", "Action", "New comment"],
                 ...followUp.actions.map((x) => [
-                  x.point || '',
-                  getCorrectedText(x.status) || '',
-                  x.action || '',
-                  x.comment || '',
+                  x.point || "",
+                  getCorrectedText(x.status) || "",
+                  x.action || "",
+                  x.comment || "",
                 ]),
               ],
             },
@@ -256,7 +256,7 @@ export const getCasePDF = (data: Case, flag: string) => {
       columns: [
         {
           text: `Date of notification:`,
-          width: '*',
+          width: "*",
           fontSize: 14,
           bold: true,
         },
@@ -264,17 +264,17 @@ export const getCasePDF = (data: Case, flag: string) => {
           columns: [
             {
               text: `Date of report:`,
-              width: 'auto',
+              width: "auto",
               fontSize: 14,
               bold: true,
             },
             {
               text: getIntlDate(data.reportDate),
               fontSize: 14,
-              width: 'auto',
+              width: "auto",
             },
           ],
-          width: '*',
+          width: "*",
           columnGap: 5,
         },
       ],
@@ -285,7 +285,7 @@ export const getCasePDF = (data: Case, flag: string) => {
         {
           stack: [
             {
-              text: 'Name and signature of inspector',
+              text: "Name and signature of inspector",
               fontSize: 14,
               bold: true,
             },
@@ -294,7 +294,7 @@ export const getCasePDF = (data: Case, flag: string) => {
               fontSize: 12,
             },
           ],
-          width: '*',
+          width: "*",
         },
         {
           stack: [
@@ -308,13 +308,13 @@ export const getCasePDF = (data: Case, flag: string) => {
               fontSize: 12,
             },
           ],
-          width: '*',
+          width: "*",
         },
       ],
     },
   ];
 
-  // Case report definition
+  // Location report definition
   Object.assign(docDefinition, {
     content,
   });
@@ -324,10 +324,10 @@ export const getCasePDF = (data: Case, flag: string) => {
   return new Promise((resolve) => {
     const chunks = [];
     doc.end();
-    doc.on('data', (chunk) => {
+    doc.on("data", (chunk) => {
       chunks.push(chunk);
     });
-    doc.on('end', () => {
+    doc.on("end", () => {
       resolve(Buffer.concat(chunks));
     });
   });

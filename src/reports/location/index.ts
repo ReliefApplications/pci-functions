@@ -1,9 +1,9 @@
-import { Checklist, getCaseDetails } from '../queries/getCaseDetails';
-import { getCaseForm } from '../queries/getCaseForm';
-import { InvocationContext } from '@azure/functions';
-import { getInspectorDetails } from '../queries/getInspectorInfo';
-import { getCasePDF } from './template';
-import { Case } from './types';
+import { Checklist, getLocationDetails } from "../queries/getLocationDetails";
+import { getLocationForm as getLocationForm } from "../queries/getLocationForm";
+import { InvocationContext } from "@azure/functions";
+import { getInspectorDetails } from "../queries/getInspectorInfo";
+import { getLocationPDF } from "./template";
+import { Location } from "./types";
 
 const MAX_FOLLOW_UPS = 5;
 
@@ -17,14 +17,14 @@ const getReadableName = (structure: string, question: string, row: string) => {
 };
 
 const extractInspectionActions = (
-  data: Awaited<ReturnType<typeof getCaseDetails>>,
+  data: Awaited<ReturnType<typeof getLocationDetails>>,
   structure: string
 ) => {
   const checklists = [
-    'checklist_gls_actions',
-    'checklist_osh_ps_actions',
-    'checklist_osh_a_i_actions',
-    'checklist_social_security_actions',
+    "checklist_gls_actions",
+    "checklist_osh_ps_actions",
+    "checklist_osh_a_i_actions",
+    "checklist_social_security_actions",
   ] as const;
 
   const actions: { point: string; action: string; comment: string }[] = [];
@@ -49,15 +49,15 @@ const extractInspectionActions = (
 };
 
 const extractFollowUpActions = (
-  data: Awaited<ReturnType<typeof getCaseDetails>>,
+  data: Awaited<ReturnType<typeof getLocationDetails>>,
   followUp: string,
   structure: string
 ) => {
   const checklists = [
-    'checklist_gls_',
-    'checklist_osh_ps_',
-    'checklist_osh_a_i_',
-    'checklist_social_security_',
+    "checklist_gls_",
+    "checklist_osh_ps_",
+    "checklist_osh_a_i_",
+    "checklist_social_security_",
   ] as const;
 
   const actions: {
@@ -92,47 +92,52 @@ const extractFollowUpActions = (
   return actions;
 };
 
-export const getCaseReport = async (
-  caseID: string,
+export const getLocationReport = async (
+  locationID: string,
   context: InvocationContext,
   token: string
 ) => {
-  // Get the form linked to the case
-  const form = await getCaseForm(caseID, token, context);
+  // Get the form linked to the location
+  const form = await getLocationForm(locationID, token, context);
   if (!form) {
-    throw new Error(`Case ${caseID} has no form!`);
+    throw new Error(`Location ${locationID} has no form!`);
   }
 
   const { structure, queryName } = form;
-  const caseData = await getCaseDetails(caseID, queryName, token, context);
+  const locationData = await getLocationDetails(
+    locationID,
+    queryName,
+    token,
+    context
+  );
 
   // Following the order of the report structure (https://miro.com/app/board/uXjVM0lP5F8=/)
-  const formattedCaseData: Case = {
+  const formattedLocationData: Location = {
     // Enterprise information
     enterprise: {
-      name: caseData.enterprise_context?.name,
-      address: caseData.enterprise_context?.address,
-      id: caseData.enterprise_context?.incrementalId,
-      repName: `${caseData.enterprise_context?.legal_rep_first_name || ''} ${
-        caseData.enterprise_context?.legal_rep_last_name || ''
-      }`,
-      // comments: caseData.enterprise_context?.comments, (MISSING FIELD)
+      name: locationData.enterprise_context?.name,
+      address: locationData.enterprise_context?.address,
+      id: locationData.enterprise_context?.incrementalId,
+      repName: `${
+        locationData.enterprise_context?.legal_rep_first_name || ""
+      } ${locationData.enterprise_context?.legal_rep_last_name || ""}`,
+      // comments: locationData.enterprise_context?.comments, (MISSING FIELD)
     },
 
     // Inspection information
-    // contraventionsFound: caseData.contraventions_found, (MISSING FIELD)
-    // contraventions: caseData.contraventions, (MISSING FIELD)
+    // contraventionsFound: locationData.contraventions_found, (MISSING FIELD)
+    // contraventions: locationData.contraventions, (MISSING FIELD)
     inspection: {
-      date: caseData.date_inspection_conducted,
-      comments: caseData.inspection_report_comment,
-      actions: extractInspectionActions(caseData, structure),
+      date: locationData.date_inspection_conducted,
+      comments: locationData.inspection_report_comment,
+      actions: extractInspectionActions(locationData, structure),
     },
 
     followups: Array.from(Array(MAX_FOLLOW_UPS), (_, i) => i + 1)
       .map((i) => {
         // Checks if follow up exists
-        const followUp = i !== 1 ? `follow_up_${i}` : 'follow_up';
-        if (!caseData[followUp]) {
+        const followUp = i !== 1 ? `follow_up_${i}` : "follow_up";
+        if (!locationData[followUp]) {
           return null;
         }
 
@@ -143,35 +148,35 @@ export const getCaseReport = async (
         const followUpComment = `${followUp}_comment`;
 
         return {
-          date: caseData[followUpDate],
-          actions: extractFollowUpActions(caseData, followUp, structure),
-          comments: caseData[followUpComment],
+          date: locationData[followUpDate],
+          actions: extractFollowUpActions(locationData, followUp, structure),
+          comments: locationData[followUpComment],
         };
       })
       .filter((f) => f !== null),
 
     inspector:
-      caseData.last_inspector_assigned_users &&
+      locationData.last_inspector_assigned_users &&
       (await getInspectorDetails(
-        caseData.last_inspector_assigned_users[0],
+        locationData.last_inspector_assigned_users[0],
         token,
         context
       )),
 
     reportDate: new Date(),
-    caseID: caseData.incrementalId,
-    // notificationDate: caseData.notification_date, (MISSING FIELD)
+    locationID: locationData.incrementalId,
+    // notificationDate: locationData.notification_date, (MISSING FIELD)
   };
 
   // Get the logo
   let logo = JSON.parse(structure).logo;
-  if (typeof logo === 'object') {
+  if (typeof logo === "object") {
     logo = logo.default;
   }
 
-  const pdf = await getCasePDF(
-    formattedCaseData,
-    typeof logo === 'string' ? logo : undefined
+  const pdf = await getLocationPDF(
+    formattedLocationData,
+    typeof logo === "string" ? logo : undefined
   );
-  return { pdf, fileName: `Report-${caseData.incrementalId}.pdf` };
+  return { pdf, fileName: `Report-${locationData.incrementalId}.pdf` };
 };

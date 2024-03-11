@@ -10,24 +10,19 @@ export async function locationReports(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
-  const { reportName, contextID } = request.params;
-  const reportFn = getReport(reportName);
-  if (!reportFn) {
-    return {
-      status: 404,
-      body: `Report ${reportName} not found.`,
-    };
-  }
+  const { contextID } = request.params;
+
   // Get bearer token
   const token = request.headers.get("authorization")?.split(" ")[1];
-  if (!token) {
-    return {
-      status: 401,
-      body: "Authorization missing.",
-    };
-  }
 
-  const { pdf, fileName } = await reportFn(contextID, context, token);
+  // if (!token) {
+  //   return {
+  //     status: 401,
+  //     body: "Authorization missing.",
+  //   };
+  // }
+
+  const { pdf, fileName } = await getReport(contextID, context, token);
 
   return {
     body: pdf as any,
@@ -37,9 +32,9 @@ export async function locationReports(
   };
 }
 
-app.http("location-report", {
+app.http("report", {
   methods: ["GET"],
   authLevel: "anonymous",
   handler: locationReports,
-  route: "report/{locationID}",
+  route: "report/{contextID}",
 });

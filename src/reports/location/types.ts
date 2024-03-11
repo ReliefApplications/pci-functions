@@ -1,4 +1,4 @@
-export type Case = {
+export type Location = {
   enterprise: {
     name: string;
     address: string;
@@ -30,6 +30,6 @@ export type Case = {
     // email: string;
   };
   reportDate: Date;
-  caseID: string;
+  locationID: string;
   // notificationDate: string;
 };

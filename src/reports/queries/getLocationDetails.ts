@@ -1,14 +1,14 @@
-import { InvocationContext } from '@azure/functions';
-import { buildOortQuery } from '../../shared/connector';
+import { InvocationContext } from "@azure/functions";
+import { buildOortQuery } from "../../shared/connector";
 
-const GET_CASE_DETAILS = (caseID: string, queryName: string) =>
+const GET_LOCATION_DETAILS = (locationID: string, queryName: string) =>
   JSON.stringify({
-    operationName: 'GetCustomQuery',
+    operationName: "GetCustomQuery",
     variables: {
       first: 1,
       filter: {
-        logic: 'and',
-        filters: [{ field: 'id', operator: 'eq', value: caseID }],
+        logic: "and",
+        filters: [{ field: "id", operator: "eq", value: locationID }],
       },
     },
     query: `query GetCustomQuery(
@@ -110,7 +110,7 @@ export type Checklist = {
     follow_up_5_action?: string;
   };
 };
-type CaseDetailsResponse = {
+type LocationDetailsResponse = {
   [key in string]: {
     edges: {
       node: {
@@ -180,22 +180,22 @@ type CaseDetailsResponse = {
   };
 };
 
-export const getCaseDetails = async (
-  caseID: string,
+export const getLocationDetails = async (
+  locationID: string,
   queryName: string,
   token: string,
   context: InvocationContext
 ) => {
   try {
-    // First we need to get the queryName for the case record
-    const res = await buildOortQuery<CaseDetailsResponse>(
-      GET_CASE_DETAILS(caseID, queryName),
+    // First we need to get the queryName for the location record
+    const res = await buildOortQuery<LocationDetailsResponse>(
+      GET_LOCATION_DETAILS(locationID, queryName),
       token
     );
 
     return res[queryName]?.edges?.[0]?.node ?? null;
   } catch (err) {
-    context.error('Error fetching case details:', err);
+    context.error("Error fetching location details:", err);
     return null;
   }
 };
